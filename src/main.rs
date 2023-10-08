@@ -1,4 +1,3 @@
-use core::panic;
 use dirs::home_dir;
 use std::{env, fs, io::stdin, path};
 
@@ -6,7 +5,8 @@ fn main() -> std::io::Result<()> {
     // parse command
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-        panic!("Le erraste che.")
+        eprintln!("Le erraste che, metele un comando válido.");
+        return Ok(());
     }
     let command = &args[1].to_lowercase();
 
@@ -23,7 +23,10 @@ fn main() -> std::io::Result<()> {
         "add" => add_task(&path),
         "list" => display_tasks(&path),
         "del" => remove_task(&path),
-        _ => panic!("Le erraste che."),
+        _ => {
+            eprintln!("Le erraste che, metele un comando válido.");
+            return Ok(());
+        }
     }
     Ok(())
 }
@@ -39,6 +42,7 @@ fn add_task(path: &path::Path) {
     println!("What's the task?: ");
     stdin().read_line(&mut task).expect("Something went wrong.");
     let mut todo_string = fs::read_to_string(path).expect("Something went wrong!");
+
     todo_string.push_str(&task);
     fs::write(path, todo_string).expect("Something went wrong.");
 }
@@ -49,8 +53,9 @@ fn remove_task(path: &path::Path) {
         .read_line(&mut task_number)
         .expect("Something went wrong.");
     let task_number: usize = task_number.trim().parse().expect("Something went wrong.");
-    let mut todo_string = fs::read_to_string(path).expect("Something went wrong!");
-    todo_string = todo_string.lines().collect();
-    todo_string.remove(task_number);
+    let todo_string = fs::read_to_string(path).expect("Something went wrong!");
+    let mut todo_string: Vec<&str> = todo_string.lines().collect();
+    todo_string.remove(task_number - 1);
+    let todo_string = todo_string.join("\n");
     fs::write(path, todo_string).expect("Something went wrong.");
 }
